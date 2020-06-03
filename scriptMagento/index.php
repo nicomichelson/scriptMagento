@@ -1,10 +1,16 @@
 <?php
 
                 // Definimos la clase
-            class Buscar{
+            class Productos{
+                
+                //constantes
+                const PORCENTAJE_COMISION = 13;
+                const GASTOS_ENVIO = 284;
+                
                 
                 private $nickname;
-                private $json2;
+                private $datos_productos;
+                
                 
                 
                 // Constructor
@@ -18,7 +24,7 @@
                 private function validarJson($nickname){
 
                     //$json = file_get_contents('https://api.mercadolibre.com/sites/MLA/search?nickname='.$nickname);
-                    $json = file_get_contents('https://api.mercadolibre.com/sites/MLA/search?seller_id=127422368&offset=0&limit=1');
+                     $json = file_get_contents('https://api.mercadolibre.com/sites/MLA/search?seller_id=127422368&offset=0&limit=1');
 
 
                     $data = json_decode($json);
@@ -29,13 +35,19 @@
                 public function armarData($data){
 
 
-                    $producto = array();
+                    $productos = array();
 
                     foreach($data->results as $k ):
-                           
-                        $item = $this->devolverItem($k->id);
+                         
+                        
+                        $importe_publicacion = $k->price;
+                        $comision = $this->totalComision($k->price);
+                        $gananciaML = $this->totalComision($k->price) - $this->gastoEnvioVendedor();
+                        $precio_original =$importe_publicacion - $comision - $this->gastoEnvioVendedor();
+                        
+                        $item['item'] = $this->devolverItem($k->id,$precio_original);
 
-                        $sal=['id'                  => $k->id, 
+                        $producto['pruducto']=['id' => $k->id, 
                             'title'                 => $k->title,
                             'price'                 => $k->price,
                             'currency_id'           => $k->currency_id, 
@@ -51,25 +63,36 @@
                             'official_store_id'     => $k->official_store_id,
                             
                         ]; 
-                        array_push($sal, $item);
-                        array_push($producto, $sal);
-                        endforeach;
+                        
+                        $precios_calculados['precio_calculado']=[
+                            'total_comision'                 =>  $comision,
+                            'gananciaML'                     =>  $gananciaML,
+                            'gastos_envio_vendedror'         =>  $this->gastoEnvioVendedor(),
+                            'precio_original'                =>  $precio_original
 
-                         $this->json2 = json_encode($producto);
-                    
+                        ];
+                        
+                        array_push($producto, $item,$precios_calculados);
+                        array_push($productos, $producto);
+                        
+                    endforeach;
+
+                         //$this->datos_productos = json_encode($productos);
+                         $this->datos_productos = $productos;
                     
                     
                 }
 
-                private function devolverItem($item){
+                private function devolverItem($item,$precio_original){
 
                     $json = file_get_contents('https://api.mercadolibre.com/items/'.$item);
                     $data = json_decode($json);
-
+                    
+                    //$precio_original = $data->price - $comision - $this->gastoEnvioVendedor();
                     $salItem=[
                             'precio'            =>  $data->price,
                             'precio_base'       =>  $data->base_price,
-                            'precio_original'   =>  $data->original_price,  
+                            'precio_original'   =>  $precio_original, //este campo se actualiza porq viene vacio desde la api 
                             'miniatura'         =>  $data->secure_thumbnail
                     ];
 
@@ -77,9 +100,19 @@
 
                 }
 
+                private function gastoEnvioVendedor(){
+                   return self::GASTOS_ENVIO/2;
+                }
+
+                private function totalComision($precio){
+                    return ($precio * self::PORCENTAJE_COMISION)/100;
+                }
+
+                
+
                 public function mostraJson(){
                     
-                    return $this->json2;
+                    return $this->datos_productos;
                 }
 
                 
@@ -104,11 +137,11 @@
             //instancio la clase y llamo al metodo mostrarjson
             //en este caso muestra un array con los datos d los productos
             //de un vendedor 
-            $resultado = new Buscar($nickname);
+            $resultado = new Productos($nickname);
             
             
-            echo $resultado->mostraJson();
-            
+           // echo var_dump($resultado->mostraJson());
+            print_r($resultado->mostraJson());
             
             ?>
             
