@@ -32,7 +32,7 @@
                     //de un vendedor 
                     $resultado = new Productos($nickname);
                     $productos = $resultado->mostraProductos();
-                    file_put_contents('productos.json', json_encode($productos));
+                    file_put_contents('productos.json', json_encode($productos));//crea un archivo .json
                     //echo var_dump($productos);
                     //print_r($productos);
 
