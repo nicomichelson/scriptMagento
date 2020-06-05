@@ -23,7 +23,7 @@
 
                 private function validarJson($nickname){//valida una api
 
-                    $json = file_get_contents('https://api.mercadolibre.com/sites/MLA/search?nickname='.$nickname.'&offset=0&limit=1');
+                    $json = file_get_contents('https://api.mercadolibre.com/sites/MLA/search?nickname='.$nickname.'&offset=0&limit=2');
                     //$json = file_get_contents('https://api.mercadolibre.com/sites/MLA/search?seller_id=127422368&offset=0&limit=5');
                     //LAPARFUMERIE
 
@@ -118,6 +118,8 @@
                     return $this->datos_productos;
                 }
 
+                
+               
                 
             }
             ?>
