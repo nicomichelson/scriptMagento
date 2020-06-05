@@ -23,7 +23,7 @@
 
                 private function validarJson($nickname){//valida una api
 
-                    $json = file_get_contents('https://api.mercadolibre.com/sites/MLA/search?nickname='.$nickname.'&offset=0&limit=2');
+                    $json = file_get_contents('https://api.mercadolibre.com/sites/MLA/search?nickname='.$nickname.'&offset=0&limit=1');
                     //$json = file_get_contents('https://api.mercadolibre.com/sites/MLA/search?seller_id=127422368&offset=0&limit=5');
                     //LAPARFUMERIE
 
@@ -45,15 +45,11 @@
                         $gananciaML = $this->totalComision($k->price) - $this->gastoEnvioVendedor();
                         $precio_original =$importe_publicacion - $comision - $this->gastoEnvioVendedor();
                         
+                        //obtengo item completo por cada publicacion y datos de las imagenes de cada publicacion
                         $item = $this->devolverItem($k->id,$precio_original);
-                       
-                        $precios_calculados=[//arma un array con precios calculados por cada producto
-                            'total_comision'                 =>  $comision,
-                            'gananciaML'                     =>  $gananciaML,
-                            'gastos_envio_vendedror'         =>  $this->gastoEnvioVendedor(),
-                            'precio_original'                =>  $precio_original
-
-                        ];
+                        $imagen = $this->devolverImagen($k->id);
+                        
+                        
                        
                         $producto=[ 'id' => $k->id, 
                             'title'                 => $k->title,
@@ -69,8 +65,18 @@
                             'accepts_mercadopago'   => $k->accepts_mercadopago, 
                             'category_id'           => $k->category_id, 
                             'official_store_id'     => $k->official_store_id,
-                            'item'                  => $item ,
-                            'precio_calculados'     => $precios_calculados
+                           
+                            // items
+                            'precioItem'            =>$item['precio'],
+                            'precioBaseItem'        =>$item['precio_base'],
+                            'precioOriginalItem'    =>$item['precio_original'],//viene null de la api
+                            'miniaturaItem'         =>$item['miniatura'],
+                            //precios calculados
+                            'total_comision'        =>  $comision,
+                            'gananciaML'            =>  $gananciaML,
+                            'gastos_envio_vendedror' =>  $this->gastoEnvioVendedor(),
+                            'precio_original'        =>  $precio_original,
+                            'imagenesItem'           =>  $imagen
                             
                         ]; 
                         
@@ -95,11 +101,21 @@
                     $salItem=[
                             'precio'            =>  $data->price,
                             'precio_base'       =>  $data->base_price,
-                            'precio_original'   =>  $precio_original, //este campo se actualiza porq viene vacio desde la api 
-                            'miniatura'         =>  $data->secure_thumbnail
+                            'precio_original'   =>  $data->original_price, //viene null de la api
+                            'miniatura'         =>  $data->secure_thumbnail,
+                            'imagenes'          =>  $data->pictures
                     ];
 
                     return $salItem;
+
+                }
+
+                private function devolverImagen($imagen){//devuelve las imagenes de cada publicacion
+                    $json = file_get_contents('https://api.mercadolibre.com/items/'.$imagen);
+                    $data = json_decode($json);
+
+                    $imagen = $data->pictures;
+                    return $imagen;
 
                 }
 

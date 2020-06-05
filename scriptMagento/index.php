@@ -32,7 +32,7 @@
                     //de un vendedor 
                     $resultado = new Productos($nickname);
                     $productos = $resultado->mostraProductos();
-                    file_put_contents('productos.json', json_encode($productos));//crea un archivo .json
+                    file_put_contents('publicaciones.json', json_encode($productos));//crea un archivo .json
                     //echo var_dump($productos);
                     //print_r($productos);
 
@@ -44,7 +44,7 @@
                                     case ($key == "id"):
                                         echo "<p> <strong>$key ...  $value</strong> </p>";
                                     break;
-                                    case ($key == "item" || $key == "precio_calculados"):
+                                    case ($key == "imagenesItem"):
                                         echo "<p> <strong>$key</strong> </p>";
                                         foreach($value as $items => $item):
                                             echo "<p> $items ... $item</p>";
